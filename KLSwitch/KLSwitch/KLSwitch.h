@@ -15,6 +15,7 @@
 typedef void(^changeHandler)(BOOL isOn);
 
 @interface KLSwitch : UIControl <NSCoding>
+
 //UISwitch interface
 @property(nonatomic, strong) UIImage *onImage NS_AVAILABLE_IOS(5_0) UI_APPEARANCE_SELECTOR;         //Currently this does nothing
 @property(nonatomic, strong) UIImage *offImage NS_AVAILABLE_IOS(5_0) UI_APPEARANCE_SELECTOR;        //Currently this does nothing
@@ -43,8 +44,7 @@ typedef void(^changeHandler)(BOOL isOn);
 
 //Initializers
 - (id)initWithFrame:(CGRect)frame;
-- (id)initWithFrame:(CGRect)frame
-   didChangeHandler:(changeHandler) didChangeHandler;
+- (id)initWithFrame:(CGRect)frame didChangeHandler:(changeHandler) didChangeHandler;
 
 //Events
 - (void)setOn:(BOOL)on animated:(BOOL)animated;

@@ -10,43 +10,43 @@
 #import "KLSwitch.h"
 
 #define kConstrainsFrameToProportions YES
-#define kHeightWidthRatio 1.6451612903  //Magic number as a result of dividing the height by the width on the default UISwitch size (51/31)
+#define kHeightWidthRatio                       1.6451612903f  //Magic number as a result of dividing the height by the width on the default UISwitch size (51/31)
 
 //NSCoding Keys
-#define kCodingOnKey @"on"
-#define kCodingLockedKey @"off"
-#define kCodingOnTintColorKey @"onColor"
-#define kCodingOnColorKey @"onTintColor"    //Not implemented
-#define kCodingTintColorKey @"tintColor"
-#define kCodingThumbTintColorKey @"thumbTintColor"
-#define kCodingOnImageKey @"onImage"
-#define kCodingOffImageKey @"offImage"
-#define kCodingConstrainFrameKey @"constrainFrame"
+#define kCodingOnKey                            @"on"
+#define kCodingLockedKey                        @"off"
+#define kCodingOnTintColorKey                   @"onColor"
+#define kCodingOnColorKey                       @"onTintColor"    //Not implemented
+#define kCodingTintColorKey                     @"tintColor"
+#define kCodingThumbTintColorKey                @"thumbTintColor"
+#define kCodingOnImageKey                       @"onImage"
+#define kCodingOffImageKey                      @"offImage"
+#define kCodingConstrainFrameKey                @"constrainFrame"
 
 //Appearance Defaults - Colors
 //Track Colors
-#define kDefaultTrackOnColor     [UIColor colorWithRed:83/255.0 green: 214/255.0 blue: 105/255.0 alpha: 1]
-#define kDefaultTrackOffColor    [UIColor colorWithWhite: 0.9f alpha:1.0f]
-#define kDefaultTrackContrastColor [UIColor whiteColor]
+#define kDefaultTrackOnColor                    [UIColor colorWithRed:83.0f/255.0f green: 214.0f/255.0f blue: 105.0f/255.0f alpha: 1.0f]
+#define kDefaultTrackOffColor                   [UIColor colorWithWhite: 0.9f alpha:1.0f]
+#define kDefaultTrackContrastColor              [UIColor whiteColor]
 
 //Thumb Colors
-#define kDefaultThumbTintColor [UIColor whiteColor]
-#define kDefaultThumbBorderColor [UIColor colorWithWhite: 0.9f alpha:1.0f]
+#define kDefaultThumbTintColor                  [UIColor whiteColor]
+#define kDefaultThumbBorderColor                [UIColor colorWithWhite: 0.9f alpha:1.0f]
 
 //Appearance - Layout
 
 //Size of knob with respect to the control - Must be a multiple of 2
-#define kThumbOffset 1
-#define kThumbTrackingGrowthRatio 1.2f                //Amount to grow the thumb on press down
+#define kThumbOffset                            1.0f
+#define kThumbTrackingGrowthRatio               1.2f    //Amount to grow the thumb on press down
 
-#define kDefaultPanActivationThreshold 0.7                    //Number between 0.0 - 1.0 describing how far user must drag before initiating the switch
+#define kDefaultPanActivationThreshold          0.7f    //Number between 0.0 - 1.0 describing how far user must drag before initiating the switch
 
 //Appearance - Animations
-#define kDefaultAnimationSlideLength 0.25f           //Length of time to slide the thumb from left/right to right/left
-#define kDefaultAnimationScaleLength 0.15f           //Length of time for the thumb to grow on press down
-#define kDefaultAnimationContrastResizeLength 0.25f           //Length of time for the thumb to grow on press down
+#define kDefaultAnimationSlideLength            0.25f   //Length of time to slide the thumb from left/right to right/left
+#define kDefaultAnimationScaleLength            0.15f   //Length of time for the thumb to grow on press down
+#define kDefaultAnimationContrastResizeLength   0.25f   //Length of time for the thumb to grow on press down
 
-#define kSwitchTrackContrastViewShrinkFactor 0.0001f     //Must be very low but not 0 or else causes iOS 5 issues
+#define kSwitchTrackContrastViewShrinkFactor    0.0001f //Must be very low but not 0 or else causes iOS 5 issues
 
 typedef enum {
     KLSwitchThumbJustifyLeft,
@@ -94,7 +94,8 @@ typedef enum {
 
 #pragma mark - Initializers
 
-- (void)encodeWithCoder:(NSCoder *)aCoder {
+- (void)encodeWithCoder:(NSCoder *)aCoder
+{
     [super encodeWithCoder: aCoder];
     
     [aCoder encodeBool: _on
@@ -120,7 +121,8 @@ typedef enum {
     
 }
 
-- (id)initWithCoder:(NSCoder *)aDecoder {
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
     [self initializeDefaults];
     if (self = [super initWithCoder: aDecoder]) {
         
@@ -139,6 +141,7 @@ typedef enum {
     }
     return self;
 }
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -147,23 +150,29 @@ typedef enum {
     }
     return self;
 }
-- (id)initWithFrame:(CGRect)frame
-   didChangeHandler:(changeHandler) didChangeHandler {
-    if (self = [self initWithFrame: frame]) {
+
+- (id)initWithFrame:(CGRect)frame didChangeHandler:(changeHandler) didChangeHandler
+{
+    self = [self initWithFrame: frame];
+    if (self) {
         _didChangeHandler = didChangeHandler;
     }
     return self;
 }
--(void) setFrame:(CGRect)frame {
+
+-(void) setFrame:(CGRect)frame
+{
     if (self.shouldConstrainFrame) {
         [super setFrame: CGRectMake(frame.origin.x, frame.origin.y, frame.size.height*kHeightWidthRatio, frame.size.height)];
+    } else {
+        [super setFrame: frame];
     }
-    else [super setFrame: frame];
 }
 
 #pragma mark - Defaults and layout/appearance
 
--(void) initializeDefaults {
+-(void) initializeDefaults
+{
     _onTintColor = kDefaultTrackOnColor;
     _tintColor = kDefaultTrackOffColor;
     _thumbTintColor = kDefaultThumbTintColor;
@@ -172,7 +181,9 @@ typedef enum {
     _panActivationThreshold = kDefaultPanActivationThreshold;
     _shouldConstrainFrame = kConstrainsFrameToProportions;
 }
--(void) configureSwitch {
+
+-(void) configureSwitch
+{
     [self initializeDefaults];
  
     //Configure visual properties of self
@@ -216,22 +227,30 @@ typedef enum {
     }
 }
 
--(void) setOnTintColor:(UIColor *)onTintColor {
+-(void) setOnTintColor:(UIColor *)onTintColor
+{
     _onTintColor = onTintColor;
     [self.track setOnTintColor: _onTintColor];
 }
--(void) setTintColor:(UIColor *)tintColor {
+
+-(void) setTintColor:(UIColor *)tintColor
+{
     _tintColor = tintColor;
     [self.track setTintColor: _tintColor];
 }
--(void) setContrastColor:(UIColor *)contrastColor {
+
+-(void) setContrastColor:(UIColor *)contrastColor
+{
     _contrastColor = contrastColor;
     [self.track setContrastColor: _contrastColor];
 }
--(void) setThumbBorderColor:(UIColor *)thumbBorderColor {
+
+-(void) setThumbBorderColor:(UIColor *)thumbBorderColor
+{
     _thumbBorderColor = thumbBorderColor;
     [self.thumb.layer setBorderColor: [_thumbBorderColor CGColor]];
 }
+
 - (void)drawRect:(CGRect)rect
 {
     [super drawRect:rect];
@@ -251,12 +270,15 @@ typedef enum {
 }
 
 #pragma mark - UIGestureRecognizer implementations
--(void) didTap:(UITapGestureRecognizer*) gesture {
+-(void) didTap:(UITapGestureRecognizer*) gesture
+{
     if (gesture.state == UIGestureRecognizerStateEnded) {
         [self toggleState];
     }
 }
--(void) didDrag:(UIPanGestureRecognizer*) gesture {
+
+-(void) didDrag:(UIPanGestureRecognizer*) gesture
+{
     if (gesture.state == UIGestureRecognizerStateBegan) {
         //Grow the thumb horizontally towards center by defined ratio
         [self setThumbIsTracking: YES
@@ -277,8 +299,7 @@ typedef enum {
             [self sendActionsForControlEvents:UIControlEventTouchDragInside];
         else
             [self sendActionsForControlEvents:UIControlEventTouchDragOutside];
-    }
-    else  if (gesture.state == UIGestureRecognizerStateEnded) {
+    } else  if (gesture.state == UIGestureRecognizerStateEnded) {
         [self setThumbIsTracking: NO
                    animated: YES];
     }
@@ -286,14 +307,15 @@ typedef enum {
 
 #pragma mark - Event Handlers
 
--(void) toggleState {
+-(void) toggleState
+{
     //Alternate between on/off
     [self setOn: self.isOn ? NO : YES
        animated: YES];
 }
 
-- (void)setOn:(BOOL)on
-     animated:(BOOL)animated {
+- (void)setOn:(BOOL)on animated:(BOOL)animated
+{
     //Cancel notification to parent if attempting to set to current state
     if (_on == on) {
         return;
@@ -316,11 +338,13 @@ typedef enum {
     [self sendActionsForControlEvents:UIControlEventValueChanged];
 }
 
-- (void) setOn:(BOOL)on {
+- (void) setOn:(BOOL)on
+{
     [self setOn: on animated: NO];
 }
 
-- (void) setLocked:(BOOL)locked {
+- (void) setLocked:(BOOL)locked
+{
     //Cancel notification to parent if attempting to set to current state
     if (_locked == locked) {
         return;
@@ -347,6 +371,7 @@ typedef enum {
         [_track bringSubviewToFront:lockImageView];
     }
 }
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	[super touchesBegan:touches withEvent:event];
@@ -358,25 +383,27 @@ typedef enum {
 	[super touchesEnded:touches withEvent:event];
 	[self sendActionsForControlEvents:UIControlEventTouchUpInside];
 }
+
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	[super touchesCancelled:touches withEvent:event];
 	[self sendActionsForControlEvents:UIControlEventTouchUpOutside];
 }
 
--(void) setThumbIsTracking:(BOOL)isTracking {
+-(void) setThumbIsTracking:(BOOL)isTracking
+{
     if (isTracking) {
         //Grow
         [self.thumb growThumbWithJustification: self.isOn ? KLSwitchThumbJustifyRight : KLSwitchThumbJustifyLeft];
-    }
-    else {
+    } else {
         //Shrink
         [self.thumb shrinkThumbWithJustification: self.isOn ? KLSwitchThumbJustifyRight : KLSwitchThumbJustifyLeft];
     }
     [self.thumb setIsTracking: isTracking];
 }
--(void) setThumbIsTracking:(BOOL)isTracking
-             animated:(BOOL) animated {
+
+-(void) setThumbIsTracking:(BOOL)isTracking animated:(BOOL) animated
+{
     __weak id weakSelf = self;
     [UIView animateWithDuration: kDefaultAnimationScaleLength
                           delay: fabs(kDefaultAnimationSlideLength - kDefaultAnimationScaleLength)
@@ -386,8 +413,9 @@ typedef enum {
                      }
                      completion:nil];
 }
--(void) setThumbOn:(BOOL) on
-          animated:(BOOL) animated {
+
+-(void) setThumbOn:(BOOL)on animated:(BOOL)animated
+{
     if (animated) {
         [UIView animateWithDuration:0.3 animations:^{
             [self setThumbOn:on animated:NO];
@@ -402,14 +430,14 @@ typedef enum {
     }
     [self.thumb setFrame: thumbFrame];
 }
-@end
 
+@end
 
 @implementation KLSwitchThumb
 
--(void) growThumbWithJustification:(KLSwitchThumbJustify) justification {
-    if (self.isTracking) 
-        return;
+-(void) growThumbWithJustification:(KLSwitchThumbJustify) justification
+{
+    if (self.isTracking) return;
 
     CGRect thumbFrame = self.frame;
     
@@ -420,9 +448,10 @@ typedef enum {
     }
     [self setFrame: thumbFrame];
 }
--(void) shrinkThumbWithJustification:(KLSwitchThumbJustify) justification {
-    if (!self.isTracking) 
-        return;
+
+-(void) shrinkThumbWithJustification:(KLSwitchThumbJustify) justification
+{
+    if (!self.isTracking) return;
 
     CGRect thumbFrame = self.frame;
     
@@ -434,6 +463,7 @@ typedef enum {
     [self setFrame: thumbFrame];
 
 }
+
 @end
 
 @interface KLSwitchTrack ()
@@ -446,8 +476,10 @@ typedef enum {
 -(id) initWithFrame:(CGRect)frame
             onColor:(UIColor*) onColor
            offColor:(UIColor*) offColor
-      contrastColor:(UIColor*) contrastColor {
-    if (self = [super initWithFrame: frame]) {
+      contrastColor:(UIColor*) contrastColor
+{
+    self = [super initWithFrame: frame];
+    if (self) {
         _onTintColor = onColor;
         _tintColor = offColor;
         
@@ -476,60 +508,64 @@ typedef enum {
     return self;
 }
 
--(void) setOn:(BOOL)on {
+-(void) setOn:(BOOL)on
+{
     if (on) {
-        [self.onView setAlpha: 1.0];
+        [self.onView setAlpha: 1.0f];
         [self shrinkContrastView];
-    }
-    else {
-        [self.onView setAlpha: 0.0];
+    } else {
+        [self.onView setAlpha: 0.0f];
         [self growContrastView];
     }
 }
 
--(void) setOn:(BOOL)on
-     animated:(BOOL)animated {
+-(void) setOn:(BOOL)on animated:(BOOL)animated
+{
     if (animated) {
         __weak id weakSelf = self;
             //First animate the color switch
         [UIView animateWithDuration: kDefaultAnimationContrastResizeLength
-                              delay: 0.0
+                              delay: 0.0f
                             options: UIViewAnimationOptionCurveEaseOut
                          animations:^{
                              [weakSelf setOn: on
                                 animated: NO];
                          }
                          completion:nil];
-    }
-    else {
+    } else {
         [self setOn: on];
     }
 }
 
--(void) setOnTintColor:(UIColor *)onTintColor {
+-(void) setOnTintColor:(UIColor *)onTintColor
+{
     _onTintColor = onTintColor;
     [self.onView setBackgroundColor: _onTintColor];
 }
 
--(void) setTintColor:(UIColor *)tintColor {
+-(void) setTintColor:(UIColor *)tintColor
+{
     _tintColor = tintColor;
     [self setBackgroundColor: _tintColor];
 }
 
--(void) setContrastColor:(UIColor *)contrastColor {
+-(void) setContrastColor:(UIColor *)contrastColor
+{
     _contrastColor = contrastColor;
     [self.contrastView setBackgroundColor: _contrastColor];
 }
 
--(void) growContrastView {
+-(void) growContrastView
+{
     //Start out with contrast view small and centered
     [self.contrastView setTransform: CGAffineTransformMakeScale(kSwitchTrackContrastViewShrinkFactor, kSwitchTrackContrastViewShrinkFactor)];
-    [self.contrastView setTransform: CGAffineTransformMakeScale(1, 1)];
+    [self.contrastView setTransform: CGAffineTransformMakeScale(1.0f, 1.0f)];
 }
 
--(void) shrinkContrastView {
+-(void) shrinkContrastView
+{
     //Start out with contrast view the size of the track
-    [self.contrastView setTransform: CGAffineTransformMakeScale(1, 1)];
+    [self.contrastView setTransform: CGAffineTransformMakeScale(1.0f, 1.0f)];
     [self.contrastView setTransform: CGAffineTransformMakeScale(kSwitchTrackContrastViewShrinkFactor, kSwitchTrackContrastViewShrinkFactor)];
 }
 
