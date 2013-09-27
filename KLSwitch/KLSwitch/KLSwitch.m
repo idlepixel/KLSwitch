@@ -520,7 +520,8 @@ typedef enum {
         
         CGFloat cornerRadius = frame.size.height/2.0f;
         [self.layer setCornerRadius: cornerRadius];
-        [self setBackgroundColor: _tintColor];
+        self.backgroundColor = _tintColor;
+        self.clipsToBounds = YES;
         
         CGRect contrastRect = self.contrastRect;
         CGFloat contrastRadius = contrastRect.size.height/2.0f;
