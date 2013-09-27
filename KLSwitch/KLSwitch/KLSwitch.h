@@ -12,7 +12,7 @@
 
 #define LOCK_IMAGE_SUBVIEW 100
 
-typedef void(^changeHandler)(BOOL isOn);
+typedef void(^KLSwitchChangeHandler)(BOOL isOn);
 
 @interface KLSwitch : UIControl <NSCoding>
 
@@ -34,7 +34,7 @@ typedef void(^changeHandler)(BOOL isOn);
 @property(nonatomic, getter=isLocked) BOOL locked;
 
 //Custom completion block initiated by value change (on/off)
-@property(nonatomic, copy) changeHandler didChangeHandler;
+@property(nonatomic, copy) KLSwitchChangeHandler didChangeHandler;
 
 //Percent (0.0 - 1.0) of the control to travel while panning before a switch toggle is activated
 @property(nonatomic, assign) CGFloat panActivationThreshold;
@@ -44,7 +44,7 @@ typedef void(^changeHandler)(BOOL isOn);
 
 //Initializers
 - (id)initWithFrame:(CGRect)frame;
-- (id)initWithFrame:(CGRect)frame didChangeHandler:(changeHandler) didChangeHandler;
+- (id)initWithFrame:(CGRect)frame didChangeHandler:(KLSwitchChangeHandler) didChangeHandler;
 
 //Events
 - (void)setOn:(BOOL)on animated:(BOOL)animated;

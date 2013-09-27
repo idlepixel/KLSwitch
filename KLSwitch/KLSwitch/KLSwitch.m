@@ -42,9 +42,9 @@
 #define kDefaultPanActivationThreshold          0.7f    //Number between 0.0 - 1.0 describing how far user must drag before initiating the switch
 
 //Appearance - Animations
-#define kDefaultAnimationSlideLength            0.25f   //Length of time to slide the thumb from left/right to right/left
-#define kDefaultAnimationScaleLength            0.15f   //Length of time for the thumb to grow on press down
-#define kDefaultAnimationContrastResizeLength   0.25f   //Length of time for the thumb to grow on press down
+#define kDefaultAnimationSlideDuration          0.25f   //Length of time to slide the thumb from left/right to right/left
+#define kDefaultAnimationScaleDuration          0.15f   //Length of time for the thumb to grow on press down
+#define kDefaultAnimationContrastResizeDuration 0.25f   //Length of time for the thumb to grow on press down
 
 #define kSwitchTrackContrastViewShrinkFactor    0.0001f //Must be very low but not 0 or else causes iOS 5 issues
 
@@ -72,8 +72,7 @@ typedef enum {
       contrastColor:(UIColor*) contrastColor;
 -(void) growContrastView;
 -(void) shrinkContrastView;
--(void) setOn:(BOOL) on
-     animated:(BOOL) animated;
+-(void) setOn:(BOOL)on animated:(BOOL)animated;
 @end
 
 
@@ -89,7 +88,7 @@ typedef enum {
 -(void) configureSwitch;
 -(void) initializeDefaults;
 -(void) toggleState;
--(void) setThumbOn:(BOOL)on animated:(BOOL)animated;
+-(void) setThumbOn:(BOOL)on animated:(BOOL)animated completion:(void (^)(BOOL finished))completion;
 
 @property (readonly) CGRect trackFrame;
 @property (readonly) CGRect thumbFrame;
@@ -157,7 +156,7 @@ typedef enum {
     return self;
 }
 
-- (id)initWithFrame:(CGRect)frame didChangeHandler:(changeHandler) didChangeHandler
+- (id)initWithFrame:(CGRect)frame didChangeHandler:(KLSwitchChangeHandler) didChangeHandler
 {
     self = [self initWithFrame: frame];
     if (self) {
@@ -436,8 +435,8 @@ typedef enum {
 -(void) setThumbIsTracking:(BOOL)isTracking animated:(BOOL) animated
 {
     __weak id weakSelf = self;
-    [UIView animateWithDuration: kDefaultAnimationScaleLength
-                          delay: fabs(kDefaultAnimationSlideLength - kDefaultAnimationScaleLength)
+    [UIView animateWithDuration: kDefaultAnimationScaleDuration
+                          delay: fabs(kDefaultAnimationSlideDuration - kDefaultAnimationScaleDuration)
                         options: UIViewAnimationOptionCurveEaseOut
                      animations: ^{
                          [weakSelf setThumbIsTracking: isTracking];
@@ -570,7 +569,7 @@ typedef enum {
     if (animated) {
         __weak id weakSelf = self;
             //First animate the color switch
-        [UIView animateWithDuration: kDefaultAnimationContrastResizeLength
+        [UIView animateWithDuration: kDefaultAnimationContrastResizeDuration
                               delay: 0.0f
                             options: UIViewAnimationOptionCurveEaseOut
                          animations:^{
