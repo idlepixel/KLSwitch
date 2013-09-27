@@ -55,6 +55,8 @@ typedef enum {
 
 @interface KLSwitchThumb : UIView
 @property (nonatomic, assign) BOOL isTracking;
+@property (nonatomic, assign) CGSize normalSize;
+@property (nonatomic, assign) CGRect trackBounds;
 -(void) growThumbWithJustification:(KLSwitchThumbJustify) justification;
 -(void) shrinkThumbWithJustification:(KLSwitchThumbJustify) justification;
 @end
@@ -76,17 +78,21 @@ typedef enum {
 
 
 @interface KLSwitch () <UIGestureRecognizerDelegate>
+
 @property (nonatomic, strong) KLSwitchTrack* track;
 @property (nonatomic, strong) KLSwitchThumb* thumb;
 
 //Gesture Recognizers
 @property (nonatomic, strong) UIPanGestureRecognizer* panGesture;
 @property (nonatomic, strong) UITapGestureRecognizer* tapGesture;
+
 -(void) configureSwitch;
 -(void) initializeDefaults;
 -(void) toggleState;
--(void) setThumbOn:(BOOL) on
-          animated:(BOOL) animated;
+-(void) setThumbOn:(BOOL)on animated:(BOOL)animated;
+
+@property (readonly) CGRect trackFrame;
+@property (readonly) CGRect thumbFrame;
 
 @end
 
@@ -160,13 +166,21 @@ typedef enum {
     return self;
 }
 
--(void) setFrame:(CGRect)frame
+-(CGRect)trackFrame
 {
+    CGRect frame = self.bounds;
     if (self.shouldConstrainFrame) {
-        [super setFrame: CGRectMake(frame.origin.x, frame.origin.y, frame.size.height*kHeightWidthRatio, frame.size.height)];
-    } else {
-        [super setFrame: frame];
+        frame = CGRectMake(frame.origin.x, frame.origin.y, floor(frame.size.height*kHeightWidthRatio), frame.size.height);
     }
+    return frame;
+}
+
+-(CGRect)thumbFrame
+{
+    CGRect frame = [self trackFrame];
+    CGFloat size = floor(frame.size.height - 2.0f * kThumbOffset);
+    frame = CGRectMake(frame.origin.x + kThumbOffset, frame.origin.y + kThumbOffset, size, size);
+    return frame;
 }
 
 #pragma mark - Defaults and layout/appearance
@@ -213,7 +227,7 @@ typedef enum {
      */
     // Initialization code
     if (!_track) {
-        _track = [[KLSwitchTrack alloc] initWithFrame: self.bounds
+        _track = [[KLSwitchTrack alloc] initWithFrame: self.trackFrame
                                               onColor: self.onTintColor
                                              offColor: self.tintColor
                                         contrastColor: self.contrastColor];
@@ -222,7 +236,7 @@ typedef enum {
         [self addSubview: self.track];
     }
     if (!_thumb) {
-        _thumb = [[KLSwitchThumb alloc] initWithFrame:CGRectMake(kThumbOffset, kThumbOffset, self.bounds.size.height - 2 * kThumbOffset, self.bounds.size.height - 2 * kThumbOffset)];
+        _thumb = [[KLSwitchThumb alloc] initWithFrame:self.thumbFrame];
         [self addSubview: _thumb];
     }
 }
@@ -251,22 +265,40 @@ typedef enum {
     [self.thumb.layer setBorderColor: [_thumbBorderColor CGColor]];
 }
 
+-(void) setShouldConstrainFrame:(BOOL)shouldConstrainFrame
+{
+    _shouldConstrainFrame = shouldConstrainFrame;
+    [self setNeedsDisplay];
+}
+
 - (void)drawRect:(CGRect)rect
 {
     [super drawRect:rect];
+    
+    KLSwitchThumb *thumb = self.thumb;
+    KLSwitchTrack *track = self.track;
+    
+    thumb.frame = self.thumbFrame;
+    track.frame = self.trackFrame;
+    
+    thumb.normalSize = thumb.frame.size;
+    thumb.trackBounds = track.frame;
+    
     // Drawing code
     //[self.trackingKnob setTintColor: self.thumbTintColor];
-    [_thumb setBackgroundColor: [UIColor whiteColor]];
+    [thumb setBackgroundColor: [UIColor whiteColor]];
     
     //Make the knob a circle and add a shadow
-    CGFloat roundedCornerRadius = _thumb.frame.size.height/2.0f;
-    [_thumb.layer setBorderWidth: 0.5];
-    [_thumb.layer setBorderColor: [self.thumbBorderColor CGColor]];
-    [_thumb.layer setCornerRadius: roundedCornerRadius];
-    [_thumb.layer setShadowColor: [[UIColor grayColor] CGColor]];
-    [_thumb.layer setShadowOffset: CGSizeMake(0, 3)];
-    [_thumb.layer setShadowOpacity: 0.40f];
-    [_thumb.layer setShadowRadius: 0.8];
+    CGFloat roundedCornerRadius = thumb.frame.size.height/2.0f;
+    [thumb.layer setBorderWidth: 0.5];
+    [thumb.layer setBorderColor: [self.thumbBorderColor CGColor]];
+    [thumb.layer setCornerRadius: roundedCornerRadius];
+    [thumb.layer setShadowColor: [[UIColor grayColor] CGColor]];
+    [thumb.layer setShadowOffset: CGSizeMake(0, 3)];
+    [thumb.layer setShadowOpacity: 0.40f];
+    [thumb.layer setShadowRadius: 0.8];
+    
+    [self setThumbOn:self.on animated:NO];
 }
 
 #pragma mark - UIGestureRecognizer implementations
@@ -281,27 +313,29 @@ typedef enum {
 {
     if (gesture.state == UIGestureRecognizerStateBegan) {
         //Grow the thumb horizontally towards center by defined ratio
-        [self setThumbIsTracking: YES
-                   animated: YES];
-    }
-    else if (gesture.state == UIGestureRecognizerStateChanged) {
+        [self setThumbIsTracking:YES animated:YES];
+        
+    } else if (gesture.state == UIGestureRecognizerStateChanged) {
         //If touch crosses the threshold then toggle the state
-        CGPoint locationInThumb = [gesture locationInView: self.thumb];
+        CGPoint locationInThumb = [gesture locationInView: self.track];
+        
+        CGRect trackFrame = self.trackFrame;
         
         //Toggle the switch if the user pans left or right past the switch thumb bounds
         if ((self.isOn && locationInThumb.x <= 0)
-            || (!self.isOn && locationInThumb.x >= self.thumb.bounds.size.width)) {
+            || (!self.isOn && locationInThumb.x >= trackFrame.size.width)) {
             [self toggleState];
         }
         
         CGPoint locationOfTouch = [gesture locationInView:self];
-        if (CGRectContainsPoint(self.bounds, locationOfTouch))
+        if (CGRectContainsPoint(trackFrame, locationOfTouch)) {
             [self sendActionsForControlEvents:UIControlEventTouchDragInside];
-        else
+        } else {
             [self sendActionsForControlEvents:UIControlEventTouchDragOutside];
+        }
+        
     } else  if (gesture.state == UIGestureRecognizerStateEnded) {
-        [self setThumbIsTracking: NO
-                   animated: YES];
+        [self setThumbIsTracking:NO animated:YES];
     }
 }
 
@@ -322,12 +356,10 @@ typedef enum {
     }
     
     //Move the thumb to the new position
-    [self setThumbOn: on
-            animated: animated];
+    [self setThumbOn:on animated:animated];
     
     //Animate the contrast view of the track
-    [self.track setOn: on
-             animated: animated];
+    [self.track setOn:on animated:animated];
     
     _on = on;
     
@@ -421,9 +453,9 @@ typedef enum {
             [self setThumbOn:on animated:NO];
         }];
     }
-    CGRect thumbFrame = self.thumb.frame;
+    CGRect thumbFrame = self.thumbFrame;
     if (on) {
-        thumbFrame.origin.x = self.bounds.size.width - (thumbFrame.size.width + kThumbOffset);
+        thumbFrame.origin.x = self.trackFrame.size.width - (thumbFrame.size.width + kThumbOffset);
     }
     else {
         thumbFrame.origin.x = kThumbOffset;
@@ -441,10 +473,11 @@ typedef enum {
 
     CGRect thumbFrame = self.frame;
     
-    CGFloat deltaWidth = self.frame.size.width * (kThumbTrackingGrowthRatio - 1);
-    thumbFrame.size.width += deltaWidth;
+    thumbFrame.size.width = floor(self.normalSize.width * kThumbTrackingGrowthRatio);
     if (justification == KLSwitchThumbJustifyRight) {
-        thumbFrame.origin.x -= deltaWidth;
+        thumbFrame.origin.x = CGRectGetMaxX(self.trackBounds) - thumbFrame.size.width;
+    } else {
+        thumbFrame.origin.x = self.trackBounds.origin.x;
     }
     [self setFrame: thumbFrame];
 }
@@ -455,13 +488,13 @@ typedef enum {
 
     CGRect thumbFrame = self.frame;
     
-    CGFloat deltaWidth = self.frame.size.width * (1 - 1 / (kThumbTrackingGrowthRatio));
-    thumbFrame.size.width -= deltaWidth;
+    thumbFrame.size.width = self.normalSize.width;
     if (justification == KLSwitchThumbJustifyRight) {
-        thumbFrame.origin.x += deltaWidth;
+        thumbFrame.origin.x = CGRectGetMaxX(self.trackBounds) - thumbFrame.size.width;
+    } else {
+        thumbFrame.origin.x = self.trackBounds.origin.x;
     }
     [self setFrame: thumbFrame];
-
 }
 
 @end
@@ -469,6 +502,9 @@ typedef enum {
 @interface KLSwitchTrack ()
 @property (nonatomic, strong) UIView* contrastView;
 @property (nonatomic, strong) UIView* onView;
+
+@property (readonly) CGRect contrastRect;
+
 @end
 
 @implementation KLSwitchTrack
@@ -487,14 +523,10 @@ typedef enum {
         [self.layer setCornerRadius: cornerRadius];
         [self setBackgroundColor: _tintColor];
         
-        CGRect contrastRect = frame;
-        contrastRect.size.width = frame.size.width - 2*kThumbOffset;
-        contrastRect.size.height = frame.size.height - 2*kThumbOffset;
+        CGRect contrastRect = self.contrastRect;
         CGFloat contrastRadius = contrastRect.size.height/2.0f;
-
         _contrastView = [[UIView alloc] initWithFrame:contrastRect];
         [_contrastView setBackgroundColor: contrastColor];
-        [_contrastView setCenter: self.center];
         [_contrastView.layer setCornerRadius: contrastRadius];
         [self addSubview: _contrastView];
 
@@ -506,6 +538,19 @@ typedef enum {
 
     }
     return self;
+}
+
+-(CGRect)contrastRect
+{
+    CGRect contrastRect = self.bounds;
+    contrastRect = CGRectMake(kThumbOffset, kThumbOffset, contrastRect.size.width - 2.0f*kThumbOffset, contrastRect.size.height - 2.0f*kThumbOffset);
+    return contrastRect;
+}
+
+-(void)layoutSubviews
+{
+    self.contrastView.frame = self.contrastRect;
+    self.onView.frame = self.bounds;
 }
 
 -(void) setOn:(BOOL)on

@@ -60,4 +60,15 @@
     }];
 }
 
+-(void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    self.smallestSwitch.shouldConstrainFrame = YES;
+    self.smallSwitch.shouldConstrainFrame = NO;
+    self.mediumSwitch.shouldConstrainFrame = YES;
+    self.bigSwitch.shouldConstrainFrame = NO;
+    self.biggestSwitch.shouldConstrainFrame = YES;
+}
+
 @end
