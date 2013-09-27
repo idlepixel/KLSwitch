@@ -344,8 +344,7 @@ typedef enum {
 -(void) toggleState
 {
     //Alternate between on/off
-    [self setOn: self.isOn ? NO : YES
-       animated: YES];
+    [self setOn: !(self.isOn) animated: YES];
 }
 
 - (void)setOn:(BOOL)on animated:(BOOL)animated
@@ -549,6 +548,7 @@ typedef enum {
 
 -(void)layoutSubviews
 {
+    [super layoutSubviews];
     self.contrastView.frame = self.contrastRect;
     self.onView.frame = self.bounds;
 }
