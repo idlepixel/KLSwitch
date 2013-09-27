@@ -297,7 +297,7 @@ typedef enum {
     [thumb.layer setShadowOpacity: 0.40f];
     [thumb.layer setShadowRadius: 0.8];
     
-    [self setThumbOn:self.on animated:NO];
+    [self setThumbOn:self.on animated:NO completion:nil];
 }
 
 #pragma mark - UIGestureRecognizer implementations
@@ -343,34 +343,56 @@ typedef enum {
 -(void) toggleState
 {
     //Alternate between on/off
-    [self setOn: !(self.isOn) animated: YES];
+    [self setOn:!(self.isOn) animated:YES notify:YES];
 }
 
-- (void)setOn:(BOOL)on animated:(BOOL)animated
+- (void)setOn:(BOOL)on animated:(BOOL)animated notify:(BOOL)notify
 {
     //Cancel notification to parent if attempting to set to current state
     if (_on == on) {
         return;
     }
     
+    KLSwitchChangeHandler completionHandler = nil;
+    
+    // only send notifications if specified
+    if (notify) {
+        
+        __weak KLSwitch *weakSelf = self;
+        
+        // notifications should be sent after the animation has completed
+        completionHandler = ^(BOOL finished) {
+            
+            if (weakSelf) {
+                __strong KLSwitch *strongSelf = weakSelf;
+                
+                //Trigger the completion block if exists
+                if (strongSelf.didChangeHandler) {
+                    strongSelf.didChangeHandler(_on);
+                }
+                // send actions for the Value Changed event
+                [strongSelf sendActionsForControlEvents:UIControlEventValueChanged];
+            }
+        };
+    }
+    
     //Move the thumb to the new position
-    [self setThumbOn:on animated:animated];
+    [self setThumbOn:on animated:animated completion:completionHandler];
     
     //Animate the contrast view of the track
     [self.track setOn:on animated:animated];
     
     _on = on;
-    
-    //Trigger the completion block if exists
-    if (self.didChangeHandler) {
-        self.didChangeHandler(_on);
-    }
-    [self sendActionsForControlEvents:UIControlEventValueChanged];
+}
+
+- (void)setOn:(BOOL)on animated:(BOOL)animated
+{
+    [self setOn:on animated:animated notify:NO];
 }
 
 - (void) setOn:(BOOL)on
 {
-    [self setOn: on animated: NO];
+    [self setOn:on animated:NO notify:NO];
 }
 
 - (void) setLocked:(BOOL)locked
@@ -444,21 +466,27 @@ typedef enum {
                      completion:nil];
 }
 
--(void) setThumbOn:(BOOL)on animated:(BOOL)animated
+-(void) setThumbOn:(BOOL)on animated:(BOOL)animated completion:(KLSwitchChangeHandler)completionHandler
 {
     if (animated) {
-        [UIView animateWithDuration:0.3 animations:^{
-            [self setThumbOn:on animated:NO];
-        }];
+        __weak id weakSelf = self;
+        [UIView animateWithDuration:kDefaultAnimationSlideDuration
+                         animations:^{
+                             [weakSelf setThumbOn:on animated:NO completion:nil];
+                         }
+                         completion:completionHandler];
+    } else {
+        CGRect thumbFrame = self.thumbFrame;
+        if (on) {
+            thumbFrame.origin.x = CGRectGetMaxX(self.trackFrame) - (thumbFrame.size.width + kThumbOffset);
+        } else {
+            thumbFrame.origin.x = kThumbOffset;
+        }
+        [self.thumb setFrame: thumbFrame];
+        if (completionHandler) {
+            completionHandler(YES);
+        }
     }
-    CGRect thumbFrame = self.thumbFrame;
-    if (on) {
-        thumbFrame.origin.x = self.trackFrame.size.width - (thumbFrame.size.width + kThumbOffset);
-    }
-    else {
-        thumbFrame.origin.x = kThumbOffset;
-    }
-    [self.thumb setFrame: thumbFrame];
 }
 
 @end
