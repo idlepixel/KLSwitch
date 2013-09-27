@@ -282,7 +282,7 @@ typedef enum {
     track.frame = self.trackFrame;
     
     thumb.normalSize = thumb.frame.size;
-    thumb.trackBounds = track.frame;
+    thumb.trackBounds = CGRectInset(track.frame, kThumbOffset, kThumbOffset);
     
     // Drawing code
     //[self.trackingKnob setTintColor: self.thumbTintColor];
