@@ -285,7 +285,7 @@ typedef enum {
     
     // Drawing code
     //[self.trackingKnob setTintColor: self.thumbTintColor];
-    [thumb setBackgroundColor: [UIColor whiteColor]];
+    [thumb setBackgroundColor: self.thumbTintColor];
     
     //Make the knob a circle and add a shadow
     CGFloat roundedCornerRadius = thumb.frame.size.height/2.0f;
