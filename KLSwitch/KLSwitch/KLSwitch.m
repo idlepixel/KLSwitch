@@ -32,6 +32,7 @@
 //Thumb Colors
 #define kDefaultThumbTintColor                  [UIColor whiteColor]
 #define kDefaultThumbBorderColor                [UIColor colorWithWhite: 0.9f alpha:1.0f]
+#define kDefaultThumbShadowColor                [UIColor lightGrayColor]
 
 //Appearance - Layout
 
@@ -66,10 +67,14 @@ typedef enum {
 @property (nonatomic, strong) UIColor* contrastColor;
 @property (nonatomic, strong) UIColor* onTintColor;
 @property (nonatomic, strong) UIColor* tintColor;
+
+@property (nonatomic, assign) CGFloat thumbOffset;
+
 -(id) initWithFrame:(CGRect)frame
             onColor:(UIColor*) onColor
            offColor:(UIColor*) offColor
-      contrastColor:(UIColor*) contrastColor;
+      contrastColor:(UIColor*) contrastColor
+        thumbOffset:(CGFloat) thumbOffset;
 -(void) growContrastView;
 -(void) shrinkContrastView;
 -(void) setOn:(BOOL)on animated:(BOOL)animated;
@@ -177,8 +182,8 @@ typedef enum {
 -(CGRect)thumbFrame
 {
     CGRect frame = [self trackFrame];
-    CGFloat size = floor(frame.size.height - 2.0f * kThumbOffset);
-    frame = CGRectMake(frame.origin.x + kThumbOffset, frame.origin.y + kThumbOffset, size, size);
+    CGFloat size = floor(frame.size.height - 2.0f * _thumbOffset);
+    frame = CGRectMake(frame.origin.x + _thumbOffset, frame.origin.y + _thumbOffset, size, size);
     return frame;
 }
 
@@ -186,6 +191,8 @@ typedef enum {
 
 -(void) initializeDefaults
 {
+    _thumbOffset = kThumbOffset;
+    _thumbShadowColor = kDefaultThumbShadowColor;
     _onTintColor = kDefaultTrackOnColor;
     _tintColor = kDefaultTrackOffColor;
     _thumbTintColor = kDefaultThumbTintColor;
@@ -229,7 +236,8 @@ typedef enum {
         _track = [[KLSwitchTrack alloc] initWithFrame: self.trackFrame
                                               onColor: self.onTintColor
                                              offColor: self.tintColor
-                                        contrastColor: self.contrastColor];
+                                        contrastColor: self.contrastColor
+                                          thumbOffset: self.thumbOffset];
         [_track setOn: self.isOn
              animated: NO];
         [self addSubview: self.track];
@@ -264,6 +272,21 @@ typedef enum {
     [self.thumb.layer setBorderColor: [_thumbBorderColor CGColor]];
 }
 
+-(void) setThumbShadowColor:(UIColor *)thumbShadowColor
+{
+    _thumbShadowColor = thumbShadowColor;
+    [self.thumb.layer setShadowColor: [_thumbShadowColor CGColor]];
+}
+
+-(void)setThumbOffset:(CGFloat)thumbOffset
+{
+    if (_thumbOffset != thumbOffset) {
+        _thumbOffset = thumbOffset;
+        self.track.thumbOffset = thumbOffset;
+        [self setNeedsLayout];
+    }
+}
+
 -(void) setShouldConstrainFrame:(BOOL)shouldConstrainFrame
 {
     _shouldConstrainFrame = shouldConstrainFrame;
@@ -281,7 +304,7 @@ typedef enum {
     track.frame = self.trackFrame;
     
     thumb.normalSize = thumb.frame.size;
-    thumb.trackBounds = CGRectInset(track.frame, kThumbOffset, kThumbOffset);
+    thumb.trackBounds = CGRectInset(track.frame, _thumbOffset, _thumbOffset);
     
     // Drawing code
     //[self.trackingKnob setTintColor: self.thumbTintColor];
@@ -292,7 +315,7 @@ typedef enum {
     [thumb.layer setBorderWidth: 0.5];
     [thumb.layer setBorderColor: [self.thumbBorderColor CGColor]];
     [thumb.layer setCornerRadius: roundedCornerRadius];
-    [thumb.layer setShadowColor: [[UIColor grayColor] CGColor]];
+    [thumb.layer setShadowColor: [_thumbShadowColor CGColor]];
     [thumb.layer setShadowOffset: CGSizeMake(0, 3)];
     [thumb.layer setShadowOpacity: 0.40f];
     [thumb.layer setShadowRadius: 0.8];
@@ -478,9 +501,9 @@ typedef enum {
     } else {
         CGRect thumbFrame = self.thumbFrame;
         if (on) {
-            thumbFrame.origin.x = CGRectGetMaxX(self.trackFrame) - (thumbFrame.size.width + kThumbOffset);
+            thumbFrame.origin.x = CGRectGetMaxX(self.trackFrame) - (thumbFrame.size.width + _thumbOffset);
         } else {
-            thumbFrame.origin.x = kThumbOffset;
+            thumbFrame.origin.x = _thumbOffset;
         }
         [self.thumb setFrame: thumbFrame];
         if (completionHandler) {
@@ -539,11 +562,13 @@ typedef enum {
             onColor:(UIColor*) onColor
            offColor:(UIColor*) offColor
       contrastColor:(UIColor*) contrastColor
+        thumbOffset:(CGFloat) thumbOffset
 {
     self = [super initWithFrame: frame];
     if (self) {
         _onTintColor = onColor;
         _tintColor = offColor;
+        _thumbOffset = thumbOffset;
         
         CGFloat cornerRadius = frame.size.height/2.0f;
         [self.layer setCornerRadius: cornerRadius];
@@ -570,7 +595,7 @@ typedef enum {
 -(CGRect)contrastRect
 {
     CGRect contrastRect = self.bounds;
-    contrastRect = CGRectMake(kThumbOffset, kThumbOffset, contrastRect.size.width - 2.0f*kThumbOffset, contrastRect.size.height - 2.0f*kThumbOffset);
+    contrastRect = CGRectMake(_thumbOffset, _thumbOffset, contrastRect.size.width - 2.0f*_thumbOffset, contrastRect.size.height - 2.0f*_thumbOffset);
     return contrastRect;
 }
 
@@ -583,6 +608,7 @@ typedef enum {
 
 -(void) setOn:(BOOL)on
 {
+    _on = on;
     if (on) {
         [self.onView setAlpha: 1.0f];
         [self shrinkContrastView];
@@ -590,6 +616,7 @@ typedef enum {
         [self.onView setAlpha: 0.0f];
         [self growContrastView];
     }
+    [self updateTintColor];
 }
 
 -(void) setOn:(BOOL)on animated:(BOOL)animated
@@ -610,6 +637,15 @@ typedef enum {
     }
 }
 
+-(void)updateTintColor
+{
+    if (_on) {
+        self.backgroundColor = [UIColor clearColor];
+    } else {
+        self.backgroundColor = _tintColor;
+    }
+}
+
 -(void) setOnTintColor:(UIColor *)onTintColor
 {
     _onTintColor = onTintColor;
@@ -619,13 +655,21 @@ typedef enum {
 -(void) setTintColor:(UIColor *)tintColor
 {
     _tintColor = tintColor;
-    [self setBackgroundColor: _tintColor];
+    [self updateTintColor];
 }
 
 -(void) setContrastColor:(UIColor *)contrastColor
 {
     _contrastColor = contrastColor;
     [self.contrastView setBackgroundColor: _contrastColor];
+}
+
+-(void)setThumbOffset:(CGFloat)thumbOffset
+{
+    if (_thumbOffset != thumbOffset) {
+        _thumbOffset = thumbOffset;
+        [self setNeedsLayout];
+    }
 }
 
 -(void) growContrastView

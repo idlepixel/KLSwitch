@@ -28,7 +28,9 @@ typedef void(^KLSwitchChangeHandler)(BOOL isOn);
 ///Additional color options provided by KLSwitch only
 @property(nonatomic, strong) UIColor *contrastColor;
 @property(nonatomic, strong) UIColor *thumbBorderColor;
+@property(nonatomic, strong) UIColor *thumbShadowColor;
 
+@property(nonatomic, assign) CGFloat thumbOffset;
 
 @property(nonatomic, getter=isOn) BOOL on;
 @property(nonatomic, getter=isLocked) BOOL locked;
