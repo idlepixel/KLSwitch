@@ -24,6 +24,9 @@
     [KLSwitch class]; //Required for the class to be linked properly when only linked through IB
     
     [self.smallestSwitch setOnTintColor: kGreenColor];
+    [self.smallestSwitch setContrastColor: [UIColor clearColor]];
+    [self.smallestSwitch setThumbShadowColor: [UIColor clearColor]];
+    [self.smallestSwitch setTintColor: kRedColor];
     [self.smallSwitch setOnTintColor: kBlueColor];
     [self.mediumSwitch setOnTintColor: kYellowColor];
     [self.bigSwitch setOnTintColor: kOrangeColor];
@@ -69,6 +72,8 @@
     self.mediumSwitch.shouldConstrainFrame = YES;
     self.bigSwitch.shouldConstrainFrame = NO;
     self.biggestSwitch.shouldConstrainFrame = YES;
+    
+    self.smallestSwitch.thumbOffset = 3.0f;
 }
 
 @end
